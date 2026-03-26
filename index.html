@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Học tiếng Anh: Modern Company Operations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    
+    <style>
+        /* Toàn bộ UI dùng font Arial thẳng, dễ đọc */
+        * {
+            font-family: Arial, Helvetica, sans-serif !important;
+            font-style: normal !important;
+        }
+
+        body { 
+            background-color: #f1f5f9; 
+            height: 100vh; 
+            overflow: hidden; 
+            margin: 0;
+            color: #1e293b;
+        }
+
+        /* Nội dung bài đọc/văn bản cột trái - Size chuẩn 1.1rem */
+        .article-content, .article-content p, .article-content span { 
+            font-family: 'Merriweather', serif !important; 
+            line-height: 1.8; 
+            font-size: 1.1rem; 
+        }
+
+        .scroll-container { 
+            height: calc(100vh - 220px); 
+            overflow-y: auto; 
+        }
+        .scroll-container::-webkit-scrollbar { width: 6px; }
+        .scroll-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        /* Khung Tiếng Việt Luyện Dịch */
+        .translation-prompt-box { 
+            background-color: #5850ec; 
+            border-radius: 9999px; 
+            padding: 1.2rem 2.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            width: 100%;
+        }
+
+        .vi-translation-text { 
+            color: #ffffff; 
+            font-weight: 700; 
+            font-size: 1.25rem; 
+            line-height: 1.4;
+        }
+
+        /* Nút điều hướng */
+        .nav-pill { 
+            transition: all 0.3s; 
+            cursor: pointer; 
+            white-space: nowrap; 
+            font-weight: 700 !important; 
+            color: #4338ca;
+            border: 1px solid #e2e8f0;
+            background-color: #ffffff;
+            font-size: 1rem;
+        }
+        .nav-pill:hover { background-color: #f1f5f9; }
+        .nav-pill.active {
+            background-color: #5850ec !important;
+            color: white !important;
+            box-shadow: 0 4px 12px rgba(88, 80, 236, 0.3);
+            border-color: #5850ec !important;
+        }
+
+        /* Khung nhập liệu Grammar (Pill tím mỏng) */
+        .grammar-input {
+            display: inline-block;
+            min-width: 200px;
+            padding: 2px 25px; /* Chiều cao mỏng bằng 2/3 bản cũ */
+            border: none;
+            border-radius: 9999px;
+            outline: none;
+            text-align: center;
+            font-weight: 700;
+            color: white;
+            margin: 12px 15px; /* Cách xa chữ để dễ nhìn */
+            font-size: 1.15rem;
+            background-color: #5850ec; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            vertical-align: middle; 
+            line-height: 1.5;
+        }
+        .grammar-input::placeholder { color: rgba(255,255,255,0.4); font-weight: 400; font-size: 0.9rem; }
+        .grammar-input.orange-sample { background-color: #f97316; }
+
+        /* Card bài tập (Nền trắng) */
+        .grammar-item-card {
+            background-color: white;
+            border-radius: 2.5rem;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .writing-input {
+            width: 100%;
+            padding: 18px 25px;
+            border: 2px solid #e2e8f0;
+            border-radius: 9999px;
+            outline: none;
+            transition: all 0.2s;
+            font-size: 1.15rem;
+            background-color: white;
+        }
+        
+        .header-title { font-weight: 700 !important; font-size: 1.8rem; }
+
+        #global-submit-btn {
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            height: 60px;
+            background-color: #c2410c;
+            color: white;
+            border-radius: 12px;
+            padding: 0 3rem;
+            font-size: 1.1rem;
+        }
+
+        /* Bảng Grammar - Đồng bộ 1.25rem cho tất cả cột */
+        .grammar-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        .grammar-table th { background-color: #5850ec; color: white; padding: 15px; text-align: center; border: 1px solid #cbd5e1; text-transform: uppercase; font-size: 1rem; }
+        .grammar-table td { 
+            padding: 18px; 
+            border: 1px solid #cbd5e1; 
+            vertical-align: middle; 
+            font-size: 1.25rem !important; /* Chữ đều nhau */
+            color: #1e293b;
+            line-height: 1.4;
+        }
+        .grammar-table td:first-child { font-weight: 700; color: #5850ec; text-align: center; width: 140px; }
+        .grammar-table td:nth-child(2) { 
+            font-style: italic; 
+            font-weight: 700; 
+            white-space: nowrap; /* Không xuống hàng cấu trúc */
+        }
+        .grammar-table tr:nth-child(even) { background-color: #f8fafc; }
+        
+        /* Grid Layout đặc biệt cho tab Grammar (65/35) */
+        .grammar-grid { grid-template-columns: 1fr; }
+        @media (min-width: 1024px) {
+            .grammar-grid { grid-template-columns: 65% 35% !important; }
+        }
+
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .correct-bg { background-color: #ecfdf5; border-left: 8px solid #10b981; }
+        .wrong-bg { background-color: #fef2f2; border-left: 8px solid #ef4444; }
+    </style>
+</head>
+<body class="flex flex-col">
+    <!-- Header -->
+    <header class="bg-[#c2410c] text-white p-4 md:px-12 flex flex-col md:flex-row justify-between items-center shrink-0 shadow-md">
+        <div class="overflow-hidden w-full md:w-auto text-center md:text-left">
+            <h1 id="main-title" class="header-title uppercase tracking-tight">LANGUAGE LEARNING CENTER</h1>
+            <p id="sub-title" class="text-orange-100 text-xs md:text-sm font-bold opacity-90 uppercase tracking-widest">Professional English Course</p>
+        </div>
+        <div class="hidden lg:block">
+            <span class="bg-white/20 px-5 py-1.5 rounded-full text-[11px] font-bold tracking-tighter uppercase border border-white/30">Session 1: Operations & Grammar</span>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="bg-white p-3 border-b border-gray-200 flex justify-center gap-2 md:gap-4 shadow-sm shrink-0 overflow-x-auto no-scrollbar">
+        <button onclick="switchLesson(0)" class="nav-pill px-6 py-2.5 rounded-full shadow-sm" id="btn-0">Từ vựng</button>
+        <button onclick="switchLesson(1)" class="nav-pill px-6 py-2.5 rounded-full shadow-sm" id="btn-1">Grammar</button>
+        <button onclick="switchLesson(2)" class="nav-pill px-6 py-2.5 rounded-full shadow-sm" id="btn-2">Bài tập luyện dịch</button>
+        <button onclick="switchLesson(3)" class="nav-pill px-6 py-2.5 rounded-full shadow-sm active" id="btn-3">Bài tập Grammar</button>
+        <button onclick="switchLesson(4)" class="nav-pill px-6 py-2.5 rounded-full shadow-sm" id="btn-4">Listening</button>
+    </nav>
+
+    <!-- Main Content -->
+    <main id="main-container" class="flex-grow grid grid-cols-1 lg:grid-cols-2 overflow-hidden bg-white">
+        <!-- Left Column -->
+        <section class="scroll-container p-6 md:p-10 border-r border-gray-100 bg-white fade-in" id="left-column">
+            <div class="flex items-center gap-2 mb-6 text-orange-600 border-b-2 border-orange-50 pb-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832(5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                <h3 id="left-heading" class="font-bold uppercase tracking-widest text-sm text-slate-500">Nội dung học tập</h3>
+            </div>
+            <article id="passage-content" class="article-content text-gray-800 space-y-6">
+                <!-- JS Inject -->
+            </article>
+        </section>
+
+        <!-- Right Column -->
+        <section class="scroll-container p-6 md:p-10 bg-slate-50/50 fade-in" id="right-column">
+            <div class="flex items-center gap-2 mb-6 text-indigo-600 border-b-2 border-indigo-50 pb-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                <h3 id="right-title" class="font-bold uppercase tracking-widest text-sm text-slate-500">Phần làm bài</h3>
+            </div>
+            <div id="content-box" class="space-y-10 pb-10">
+                <!-- JS Inject -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="shrink-0 bg-white border-t p-4 md:px-12 flex flex-col md:flex-row justify-between items-center gap-6 shadow-inner">
+        <div id="input-area" class="flex flex-col md:flex-row items-center gap-6 w-full md:w-auto">
+            <input type="text" id="user-name" class="w-full md:w-[400px] p-4 border-2 border-orange-200 rounded-xl text-center font-bold text-xl outline-none focus:border-orange-500 shadow-sm" placeholder="HỌ VÀ TÊN CỦA BẠN...">
+            <button id="global-submit-btn" onclick="handleGlobalSubmit()" class="w-full md:w-auto px-16 shadow-lg uppercase">Nộp Toàn Bộ Bài Làm</button>
+        </div>
+        <div id="result-status" class="hidden">
+            <div class="flex items-center gap-6 bg-indigo-700 text-white px-10 py-4 rounded-2xl shadow-xl border-2 border-white/20">
+                <p class="font-bold text-lg tracking-tight uppercase">ĐÃ NỘP BÀI THÀNH CÔNG</p>
+                <div class="w-px h-8 bg-white/30"></div>
+                <p class="text-[10px] font-bold uppercase opacity-80 max-w-[150px]">Xem kết quả ở các Tab bài học</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        emailjs.init("eE_LKbw1zMcbYCKzX");
+        let isGlobalSubmitted = false;
+        let currentLessonIndex = 4; 
+
+        function speak(text) {
+            if (!window.speechSynthesis) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.9;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function speakListening(text) {
+            if (!window.speechSynthesis) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.75; // Tốc độ đọc chậm vừa phải cho phần nghe chép
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // --- HÀM HỖ TRỢ CHẤM ĐIỂM ---
+        function isCorrectText(user, correct) {
+            if(!user || !correct) return false;
+            // Xóa dấu câu, khoảng trắng thừa và đưa về chữ thường để so sánh
+            const cUser = user.toLowerCase().replace(/[.,!?;:]/g, '').replace(/\s+/g, ' ').trim();
+            const cCorrect = correct.toLowerCase().replace(/[.,!?;:]/g, '').replace(/\s+/g, ' ').trim();
+            return cUser === cCorrect;
+        }
+
+        function generateDiffHTML(userAns, correctAns) {
+            if (!userAns) return '<span>(Bạn chưa nhập câu trả lời)</span>';
+            const userWords = userAns.trim().split(/\s+/);
+            const correctWords = correctAns.trim().split(/\s+/);
+            let result = [];
+            
+            for (let i = 0; i < userWords.length; i++) {
+                const cleanUser = userWords[i].toLowerCase().replace(/[.,!?;:]/g, '');
+                const cleanCorrect = correctWords[i] ? correctWords[i].toLowerCase().replace(/[.,!?;:]/g, '') : '';
+                
+                if (cleanUser === cleanCorrect) {
+                    result.push(userWords[i]);
+                } else {
+                    result.push(`<span class="text-red-600 font-extrabold underline decoration-2">${userWords[i]}</span>`);
+                }
+            }
+            return result.join(' ');
+        }
+        // ----------------------------
+
+        const lessons = [
+            {
+                type: "vocab",
+                title: "TỔNG HỢP TỪ VỰNG BUỔI 1",
+                sub: "ESSENTIAL VOCABULARY LIST",
+                content: [
+                    "Wear /wer/ (v): Mặc", "Use /juːz/ (v): Sử dụng", "Water /ˈwɔːtər/ (v): Tưới nước", "Arrange /əˈreɪndʒ/ (v): Sắp xếp", 
+                    "Gloves /ɡlʌvz/ (n): Găng tay", "Shovel /ˈʃʌvl/ (n): Cái xẻng", "Plant /plænt/ (n): Cây", "Flower /ˈflaʊər/ (n): Hoa", 
+                    "Put /pʊt/ (v): Đặt, để", "Stop /stɑːp/ (v): Dừng", "Airport /ˈerpɔːrt/ (n): Sân bay", "Shop /ʃɑːp/ (n): Cửa hàng", 
+                    "Book /bʊk/ (n): Sách", "Big /bɪɡ/ (a): To", "Bank /bæŋk/ (n): Ngân hàng", "Job /dʒɑːb/ (n): Công việc", 
+                    "Read /riːd/ (v): Đọc", "Play /pleɪ/ (v): Chơi", "Bedroom /ˈbedruːm/ (n): Phòng ngủ", "Park /pɑːrk/ (n): Công viên", 
+                    "Watch /wɑːtʃ/ (v): Xem", "Study /ˈstʌdi/ (v): Học", "Evening /ˈiːvnɪŋ/ (n): Buổi tối", "Exam /ɪɡˈzæm/ (n): Bài kiểm tra", 
+                    "Sleep /sliːp/ (v): Ngủ", "Sing /sɪŋ/ (v): Hát", "Have breakfast /hæv ˈbrekfəst/ (phrs): Có bữa ăn sáng", "Parents /ˈperənts/ (n): Bố mẹ", 
+                    "Drive /draɪv/ (v): Lái xe 4 bánh", "Ride /raɪd/ (v): Lái xe 2 bánh", "Stair /ster/ (n): Cầu thang", "Enter /ˈentər/ (v): Đi vào", 
+                    "Fix /fɪks/ (v): Sử dụng", "Machine /mə /ˈʃiːn/ (n): Máy móc", "Lift /lɪft/ (v): Nâng", "Weight /weɪt/ (n): Quả tạ", 
+                    "Ceiling /ˈsiːlɪŋ/ (n): Trần nhà", "Paint /peɪnt/ (v): Sơn", "Wall /wɔːl/ (n): Tường", "Work on /wɜːrk ɑːn/ (phrs): Làm việc với", 
+                    "Reach for /riːtʃ fɔːr/ (phrs): Với tới", "Look out /lʊk aʊt/ (phrs): Nhìn ra ngoài", "Look at /lʊk æt/ (phrs): Nhìn vào", 
+                    "Tile /taɪl/ (n): Gạch", "Install /ɪnˈstɔːl/ (v): Lắp đặt", "Lie down /laɪ daʊn/ (phrs): Nằm xuống", "Lie on /laɪ ɑːn/ (phrs): Nằm trên", 
+                    "Pay for /peɪ fɔːr/ (phrs): Chi trả, thanh toán", "Suit /suːt/ (n): Bộ đồ vest", "Tie /taɪ/ (n): Cà vạt", "Sweep /swiːp/ (v): Quét nhà", 
+                    "Try on /traɪ ɑːn/ (phrs): Thử", "Polish /ˈpɑːlɪʃ/ (v): Đánh bóng", "Display /dɪˈspleɪ/ (v): Trưng bày", "Item /ˈaɪtəm/ (n): Món đồ", 
+                    "Review /rɪˈvjuː/ (v): Xem xét và đánh giá", "Type /taɪp/ (v): Gõ phím", "Sweater /ˈswetər/ (n): Áo len chui đầu", "A pair of /ə per əv/ (phrs): Một đôi", 
+                    "Shoes /ʃuːz/ (n): Giày", "Bench /bentʃ/ (n): Ghế dài", "Adjust /əˈdʒʌst/ (v): Điều chỉnh", "Glass /ɡlæs/ (n): Ly thủy tinh", 
+                    "Glasses /ˈɡlæsɪz/ (n): Kính mắt", "Apron /ˈeɪprən/ (n): Tạp dề", "Homework /ˈhoʊmwɜːrk/ (n): Bài tập về nhà", "Cook /kʊk/ (v): Nấu ăn", 
+                    "Listen to /ˈlɪsn tu/ (v): Lắng nghe", "Write /raɪt/ (v): Viết", "Teacher /ˈtiːtʃər/ (n): Giáo viên", "Notebook /ˈnoʊtbʊk/ (n): Vở bài tập", 
+                    "Worker /ˈwɜːrkər/ (n): Người làm việc, công nhân", "Student /ˈstuːdnt/ (n): Học sinh, sinh viên", "Dress /dres/ (n): Đầm", 
+                    "Lesson /ˈlesn/ (n): Bài học", "Window /ˈwɪndoʊ/ (n): Cửa sổ", "Climb /klaɪm/ (v): Leo lên", "Document /ˈdɑːkjumənt/ (n): Tài liệu", 
+                    "Desk /desk/ (n): Bàn", "Building /ˈbɪldɪŋ/ (n): Tòa nhà", "Map /mæp/ (n): Bản đồ", "Equipment /ɪˈkwɪpmənt/ (n): Thiết bị", 
+                    "Coat /koʊt/ (n): Áo khoác", "Floor /flɔːr/ (n): Sàn nhà", "Shelf /ʃelf/ (n): Kệ", "Clothing shop /ˈkloʊðɪŋ ʃɑːp/ (n): Cửa hàng quần áo", "Garden /ˈɡɑːrdn/ (n): Vườn"
+                ],
+                questions: [
+                    { q: "“Sắp xếp” là từ nào?", options: ["Sweep", "Arrange", "Display", "Item"], ans: "B", exp: "Arrange: Sắp xếp" },
+                    { q: "“Quét nhà” là từ nào?", options: ["Sweep", "Polish", "Try on", "Adjust"], ans: "A", exp: "Sweep: Quét nhà" },
+                    { q: "“Trưng bày” là từ nào?", options: ["Display", "Install", "Fix", "Work on"], ans: "A", exp: "Display: Trưng bày" },
+                    { q: "“Thử (quần áo)” là từ nào?", options: ["Try on", "Put", "Wear", "Use"], ans: "A", exp: "Try on: Thử quần áo" },
+                    { q: "“Đánh bóng” là từ nào?", options: ["Polish", "Sweep", "Paint", "Fix"], ans: "A", exp: "Polish: Đánh bóng" },
+                    { q: "“Cái xẻng” là từ nào?", options: ["Gloves", "Shovel", "Tool", "Machine"], ans: "B", exp: "Shovel: Cái xẻng" },
+                    { q: "“Găng tay” là từ nào?", options: ["Gloves", "Shoes", "Tie", "Coat"], ans: "A", exp: "Gloves: Găng tay" },
+                    { q: "“Tưới nước” là từ nào?", options: ["Use", "Water", "Put", "Plant"], ans: "B", exp: "Water: Tưới nước" },
+                    { q: "“Cây” là từ nào?", options: ["Flower", "Plant", "Garden", "Park"], ans: "B", exp: "Plant: Cây" },
+                    { q: "“Hoa” là từ nào?", options: ["Flower", "Leaf", "Grass", "Tree"], ans: "A", exp: "Flower: Hoa" },
+                    { q: "“Sân bay” là từ nào?", options: ["Bank", "Airport", "Shop", "Park"], ans: "B", exp: "Airport: Sân bay" },
+                    { q: "“Cửa hàng” là từ nào?", options: ["Shop", "Office", "School", "Building"], ans: "A", exp: "Shop: Cửa hàng" },
+                    { q: "“Ngân hàng” là từ nào?", options: ["Bank", "Book", "Job", "Desk"], ans: "A", exp: "Bank: Ngân hàng" },
+                    { q: "“Công việc” là từ nào?", options: ["Work", "Job", "Study", "Lesson"], ans: "B", exp: "Job: Công việc" },
+                    { q: "“Sách” là từ nào?", options: ["Notebook", "Book", "Document", "Lesson"], ans: "B", exp: "Book: Sách" },
+                    { q: "“Xem” là từ nào?", options: ["Watch", "Look", "See", "View"], ans: "A", exp: "Watch: Xem" },
+                    { q: "“Học” là từ nào?", options: ["Study", "Read", "Write", "Listen"], ans: "A", exp: "Study: Học" },
+                    { q: "“Ngủ” là từ nào?", options: ["Sleep", "Lie", "Sit", "Rest"], ans: "A", exp: "Sleep: Ngủ" },
+                    { q: "“Hát” là từ nào?", options: ["Play", "Sing", "Listen", "Talk"], ans: "B", exp: "Sing: Hát" },
+                    { q: "“Ăn sáng” là từ nào?", options: ["Eat morning", "Have breakfast", "Cook food", "Make meal"], ans: "B", exp: "Have breakfast: Ăn sáng" },
+                    { q: "“Lái xe ô tô” là từ nào?", options: ["Ride", "Drive", "Run", "Move"], ans: "B", exp: "Drive: Lái xe ô tô" },
+                    { q: "“Lái xe máy” là từ nào?", options: ["Drive", "Ride", "Walk", "Fly"], ans: "B", exp: "Ride: Lái xe máy" },
+                    { q: "“Cầu thang” là từ nào?", options: ["Stair", "Floor", "Ceiling", "Wall"], ans: "A", exp: "Stair: Cầu thang" },
+                    { q: "“Đi vào” là từ nào?", options: ["Enter", "Come", "Go", "Walk"], ans: "A", exp: "Enter: Đi vào" },
+                    { q: "“Sửa chữa” là từ nào?", options: ["Fix", "Install", "Adjust", "Work"], ans: "A", exp: "Fix: Sửa chữa" },
+                    { q: "“Máy móc” là từ nào?", options: ["Tool", "Machine", "Equipment", "Device"], ans: "B", exp: "Machine: Máy móc" },
+                    { q: "“Nâng” là từ nào?", options: ["Lift", "Carry", "Hold", "Move"], ans: "A", exp: "Lift: Nâng" },
+                    { q: "“Trần nhà” là từ nào?", options: ["Wall", "Floor", "Ceiling", "Roof"], ans: "C", exp: "Ceiling: Trần nhà" },
+                    { q: "“Tường” là từ nào?", options: ["Wall", "Tile", "Floor", "Window"], ans: "A", exp: "Wall: Tường" },
+                    { q: "“Sơn” là từ nào?", options: ["Paint", "Polish", "Fix", "Clean"], ans: "A", exp: "Paint: Sơn" },
+                    { q: "“Lắp đặt” là từ nào?", options: ["Install", "Fix", "Put", "Build"], ans: "A", exp: "Install: Lắp đặt" },
+                    { q: "“Nằm xuống” là từ nào?", options: ["Lie down", "Sit down", "Sleep", "Rest"], ans: "A", exp: "Lie down: Nằm xuống" },
+                    { q: "“Thanh toán” là từ nào?", options: ["Pay for", "Buy", "Take", "Give"], ans: "A", exp: "Pay for: Thanh toán" },
+                    { q: "“Cà vạt” là từ nào?", options: ["Suit", "Tie", "Shirt", "Coat"], ans: "B", exp: "Tie: Cà vạt" },
+                    { q: "“Áo vest” là từ nào?", options: ["Tie", "Suit", "Coat", "Dress"], ans: "B", exp: "Suit: Áo vest/Bộ đồ vest" },
+                    { q: "“Gõ phím” là từ nào?", options: ["Type", "Write", "Print", "Read"], ans: "A", exp: "Type: Gõ phím" },
+                    { q: "“Áo len” là từ nào?", options: ["Coat", "Sweater", "Shirt", "Dress"], ans: "B", exp: "Sweater: Áo len" },
+                    { q: "“Giày” là từ nào?", options: ["Shoes", "Gloves", "Tie", "Glasses"], ans: "A", exp: "Shoes: Giày" },
+                    { q: "“Ghế dài” là từ nào?", options: ["Desk", "Bench", "Chair", "Table"], ans: "B", exp: "Bench: Ghế dài" },
+                    { q: "“Điều chỉnh” là từ nào?", options: ["Adjust", "Fix", "Install", "Use"], ans: "A", exp: "Adjust: Điều chỉnh" },
+                    { q: "“Kính mắt” là từ nào?", options: ["Glass", "Glasses", "Cup", "Lens"], ans: "B", exp: "Glasses: Kính mắt" }
+                ], 
+                studentAnswers: new Array(41).fill(null)
+            },
+            {
+                type: "grammar_rules",
+                title: "GRAMMAR: THE CONTINUOUS PRESENT TENSE",
+                sub: "THÌ HIỆN TẠI TIẾP DIỄN",
+                content: {
+                    table: [
+                        { type: "Khẳng định", struct: "S + am/is/are + V-ing", ex: "They are learning English." },
+                        { type: "Phủ định", struct: "S + am/is/are + not + V-ing", ex: "I am not learning Math at the moment." },
+                        { type: "Nghi vấn (Yes/No)", struct: "Am/Is/Are + S + V-ing? <br>• Yes, S + am/is/are. <br>• No, S + am/is/are + not.", ex: "A: Are you going to school now? <br>B: Yes, I am." },
+                        { type: "Nghi vấn (Wh-)", struct: "WH + am/is/are + (not) + S + V-ing? <br>→ S + am/is/are + (not) + V-ing", ex: "What is she doing now? <br>→ Câu trả lời HTTD" }
+                    ],
+                    signals: [
+                        { key: "Now", val: "bây giờ (Ex: She is doing her homework now.)" },
+                        { key: "Right now", val: "ngay bây giờ (Ex: I am watching TV right now.)" },
+                        { key: "At the moment", val: "ngay lúc này (Ex: They are playing soccer at the moment.)" },
+                        { key: "At the present", val: "ngay lúc này (Ex: My parents are working at present.)" }
+                    ],
+                    notes: [
+                        { title: "Chủ ngữ số nhiều đi với “ARE”. Chủ ngữ số nhiều, gồm:", items: ["You (các bạn) / We (chúng tôi, chúng ta) / They (bọn họ, chúng nó)", "Danh từ số nhiều: Là những danh từ có “s” hoặc “es” ở đuôi (Ex: Students, Classes)"] },
+                        { title: "Chủ ngữ số ít đi với “IS”. Chủ ngữ số ít nhiều, gồm:", items: ["He (anh ấy) / She (Cô ấy) / It (Nó)", "Danh từ số ít: KHÔNG CÓ “s” hoặc “es” ở đuôi (Ex: Student, Class)"] }
+                    ]
+                },
+                questions: [
+                    { q: "Chủ ngữ \"She\" đi với động từ to be nào?", options: ["Am", "Is", "Are"], ans: "B", exp: "She là chủ ngữ số ít đi với is." },
+                    { q: "Chọn câu đúng:", options: ["She are studying now", "She is studying now", "She am studying now"], ans: "B", exp: "She đi với is." },
+                    { q: "Điền từ đúng: \"We ____ watching TV now.\"", options: ["is", "are", "am"], ans: "B", exp: "We là chủ ngữ số nhiều đi với are." },
+                    { q: "Chủ ngữ \"I\" đi với động từ to be nào?", options: ["Am", "Is", "Are"], ans: "A", exp: "I đi với am." },
+                    { q: "Chủ ngữ \"They\" đi với động từ to be nào?", options: ["Am", "Is", "Are"], ans: "C", exp: "They là chủ ngữ số nhiều đi với are." },
+                    { q: "Chọn câu đúng:", options: ["They is playing football now", "They are playing football now", "They am playing football now"], ans: "B", exp: "They đi với are." },
+                    { q: "Chủ ngữ \"He\" đi với động từ to be nào?", options: ["Am", "Is", "Are"], ans: "B", exp: "He là chủ ngữ số ít đi với is." },
+                    { q: "Dấu hiệu nào thuộc thì hiện tại tiếp diễn?", options: ["Right now", "At the moment", "Both A and B"], ans: "C", exp: "Cả Right now và At the moment đều là dấu hiệu." },
+                    { q: "Chọn câu đúng:", options: ["I is reading now", "I are reading now", "I am reading now"], ans: "C", exp: "I đi với am." },
+                    { q: "Điền từ đúng: \"He ____ doing homework right now.\"", options: ["is", "are", "am"], ans: "A", exp: "He là chủ ngữ số ít đi với is." },
+                    { q: "Điền từ đúng: \"I ____ listening to music now.\"", options: ["is", "are", "am"], ans: "C", exp: "I đi với am." },
+                    { q: "Chọn câu đúng:", options: ["She is eatting now", "She is eating now", "She is eat now"], ans: "B", exp: "eat thêm -ing thành eating (không gấp đôi)." },
+                    { q: "Chọn câu đúng:", options: ["They are runing now", "They are running now", "They are run now"], ans: "B", exp: "run gấp đôi phụ âm cuối thành running." },
+                    { q: "Chọn câu đúng:", options: ["He is swiming now", "He is swimming now", "He is swim now"], ans: "B", exp: "swim gấp đôi phụ âm cuối thành swimming." },
+                    { q: "Điền từ đúng: \"The students ____ studying right now.\"", options: ["is", "are", "am"], ans: "B", exp: "The students là danh từ số nhiều đi với are." },
+                    { q: "Chọn câu sai:", options: ["She is cooking now", "They are cooking now", "He are cooking now"], ans: "C", exp: "He phải đi với is, không đi với are." },
+                    { q: "Chọn câu đúng:", options: ["We is learning English now", "We are learning English now", "We am learning English now"], ans: "B", exp: "We đi với are." },
+                    { q: "Điền từ đúng: \"It ____ raining now.\"", options: ["is", "are", "am"], ans: "A", exp: "It là chủ ngữ số ít đi với is." },
+                    { q: "Chọn câu đúng:", options: ["The dog is barking now", "The dog are barking now", "The dog am barking now"], ans: "A", exp: "The dog là danh từ số ít đi với is." },
+                    { q: "Chọn câu đúng:", options: ["My friends is talking now", "My friends are talking now", "My friends is talkking now"], ans: "B", exp: "My friends là danh từ số nhiều đi với are, talk thêm ing bình thường." }
+                ],
+                studentAnswers: new Array(20).fill(null)
+            },
+            {
+                type: "translation",
+                title: "LUYỆN DỊCH: DAILY ACTIONS",
+                sub: "40 SENTENCES CHALLENGE",
+                questions: [
+                    { vi: "Cô ấy đang thử một cái đầm màu xanh trong phòng ngủ của cô ấy.", ans: "She is trying on a blue dress in her bedroom.", exp: "Thử đồ: Try on." },
+                    { vi: "Ngay lúc này, họ đang sử dụng một cái xẻng trong vườn.", ans: "At the moment, they are using a shovel in the garden.", exp: "Cái xẻng: Shovel." },
+                    { vi: "Anh ấy đang thử một bộ vest và cà vạt mới trong cửa hàng quần áo.", ans: "He is trying on a new suit and tie in the clothing shop.", exp: "Suit and tie: Bộ vest và cà vạt." },
+                    { vi: "Chúng tôi đang sắp xếp sách trên bàn trong phòng ngủ của chúng tôi.", ans: "We are arranging books on the desk in our bedroom.", exp: "Sắp xếp: Arrange." },
+                    { vi: "Người công nhân đang sử dụng cái xẻng và găng tay để đào một cái hố trong công viên.", ans: "The worker is using a shovel and gloves to dig a hole in the park.", exp: "Worker: Công nhân, Gloves: Găng tay." },
+                    { vi: "Ngay bây giờ, em gái tôi đang làm bài tập về nhà trong phòng ngủ của cô ấy.", ans: "Right now, my younger sister is doing her homework in her bedroom.", exp: "Homework: Bài tập về nhà." },
+                    { vi: "Anh ấy đang nấu bữa sáng cho bố mẹ của anh ấy.", ans: "He is cooking breakfast for his parents.", exp: "Bố mẹ: Parents." },
+                    { vi: "Ngay lúc này, họ xem tivi và nghe nhạc trong phòng khách.", ans: "Right now, they are watching TV and listening to music in the living room.", exp: "Watching TV: Xem tivi." },
+                    { vi: "Anh ấy đang lái xe hơi đến sân bay để gặp một người bạn mới.", ans: "He is driving a car to the airport to meet a new friend.", exp: "Airport: Sân bay." },
+                    { vi: "Anh ấy đang leo cầu thang và đi vào tòa nhà.", ans: "He is climbing the stairs and entering the building.", exp: "Climbing: Leo." },
+                    { vi: "Cô ấy thử một chiếc áo len và một đôi giày trong cửa hàng.", ans: "She is trying on a sweater and a pair of shoes in the shop.", exp: "Sweater: Áo len." },
+                    { vi: "Mẹ của tôi đang xem xét lại một số tài liệu trong phòng khách.", ans: "My mother is reviewing some documents in the living room.", exp: "Reviewing: Xem xét." },
+                    { vi: "Người công nhân đang sơn lại tường và trần nhà trong hành lang.", ans: "The worker is painting the wall and the ceiling in the hallway.", exp: "Painting: Sơn." },
+                    { vi: "Họ đang sửa chữa một chiếc xe đạp ở sau vườn.", ans: "They are fixing a bicycle in the back garden.", exp: "Fixing: Sửa chữa." },
+                    { vi: "Một người đàn ông đang nằm trên một cái ghế dài ở trong công viên.", ans: "A man is lying on a bench in the park.", exp: "Lying on: Nằm trên." },
+                    { vi: "Chị của tôi đang trưng bày những món đồ mới lên trên kệ.", ans: "My sister is displaying new items on the shelf.", exp: "Displaying: Trưng bày." },
+                    { vi: "Bố của tôi đang đánh bóng một đôi giày trong phòng ngủ của anh ấy.", ans: "My father is polishing a pair of shoes in his bedroom.", exp: "Polishing: Đánh bóng." },
+                    { vi: "Một người đàn ông đang nhấc vào những cái tạ trong sân.", ans: "A man is lifting weights in the yard.", exp: "Lifting weights: Nâng tạ." },
+                    { vi: "Một đứa trẻ đang nhìn ra ngoài cửa sổ trong khi mẹ của cô ấy đang gõ phím.", ans: "A child is looking out the window while her mother is typing.", exp: "Looking out: Nhìn ra." },
+                    { vi: "Em trai tôi đang ôn tập lại bài học cho bài kiểm tra.", ans: "My younger brother is reviewing the lesson for the exam.", exp: "Reviewing: Ôn tập." },
+                    { vi: "Cô giáo đang viết bài học lên bảng trong khi học sinh đang nhìn vào vở.", ans: "The teacher is writing the lesson on the board while the students are looking at their notebooks.", exp: "Writing: Viết." },
+                    { vi: "Ngay lúc này, một học sinh đang đọc sách trong thư viện.", ans: "Right now, a student is reading a book in the library.", exp: "Reading: Đọc." },
+                    { vi: "Anh ấy đang mặc một áo khoác khi đi ra công viên.", ans: "He is wearing a coat when going to the park.", exp: "Wearing: Mặc." },
+                    { vi: "Cô ấy đang quét sàn nhà trong phòng ngủ của cô ấy trong khi em trai của cô ấy đang chơi bóng đá ở trong vườn.", ans: "She is sweeping the floor in her bedroom while her younger brother is playing football in the garden.", exp: "Sweeping: Quét sàn." },
+                    { vi: "Ngay lúc này, một vài người thợ đang lắp đặt gạch trên tường trong một tòa nhà.", ans: "Right now, some workers are installing tiles on the wall in a building.", exp: "Installing: Lắp đặt." },
+                    { vi: "Một người đàn ông đang nâng một quả tạ trong phòng ngủ của anh ấy.", ans: "A man is lifting a weight in his bedroom.", exp: "Lifting: Nâng." },
+                    { vi: "Cô ấy đang đi xe máy đến cửa hàng để mua một vài món đồ.", ans: "She is riding a motorcycle to the shop to buy some items.", exp: "Riding: Lái xe 2 bánh." },
+                    { vi: "Người công nhân đang làm việc với máy móc trong nhà máy.", ans: "The worker is working on machines in the factory.", exp: "Work on: Làm việc với." },
+                    { vi: "Một sinh viên đang ngồi trên ghế dài và nhìn vào những bông hoa ở công viên.", ans: "A student is sitting on a bench and looking at the flowers in the park.", exp: "Flowers: Hoa." },
+                    { vi: "Anh ấy đang đi vào sân bay với một tấm bản đồ trên tay.", ans: "He is entering the airport with a map in his hand.", exp: "Map: Bản đồ." },
+                    { vi: "Cô gái đang điều chỉnh kính mắt của mình trước cửa sổ trong khi bạn của cô ấy đang đọc những tài liệu.", ans: "The girl is adjusting her glasses in front of the window while her friend is reading documents.", exp: "Adjusting: Điều chỉnh." },
+                    { vi: "Người mẹ đang đeo tạp dề và nấu ăn trong bếp.", ans: "The mother is wearing an apron and cooking in the kitchen.", exp: "Apron: Tạp dề." },
+                    { vi: "Một người đàn ông đang thanh toán tiền cho một món đồ trong cửa hàng.", ans: "A man is paying for an item in the shop.", exp: "Pay for: Thanh toán." },
+                    { vi: "Cậu bé đang leo lên cầu thang để vào phòng ngủ.", ans: "The boy is climbing the stairs to enter the bedroom.", exp: "Stairs: Cầu thang." },
+                    { vi: "Cô ấy đang điều chỉnh một cái bàn trong phòng học.", ans: "She is adjusting a desk in the classroom.", exp: "Adjusting: Điều chỉnh." },
+                    { vi: "Người cha đang lái xe đến cửa hàng để mua sơn.", ans: "The father is driving to the shop to buy paint.", exp: "Paint: Sơn." },
+                    { vi: "Một học sinh đang nghe một bài giảng trong lớp học trong khi bạn của cô ấy đang viết vào vở của anh ấy.", ans: "A student is listening to a lecture in the classroom while her friend is writing in his notebook.", exp: "Listening: Nghe." },
+                    { vi: "Người đàn ông đang đánh bóng một đôi giày trong khi vợ của anh ta đang nấu ăn trong nhà bếp.", ans: "The man is polishing a pair of shoes while his wife is cooking in the kitchen.", exp: "Polishing: Đánh bóng." },
+                    { vi: "Người công nhân đang sử dụng máy móc để lắp đặt thiết bị trong tòa nhà.", ans: "The worker is using machines to install equipment in the building.", exp: "Equipment: Thiết bị." },
+                    { vi: "Một sinh viên đang ngồi ở bàn và gõ phím bài tập trong phòng ngủ.", ans: "A student is sitting at the desk and typing homework in the bedroom.", exp: "Typing: Gõ phím." }
+                ],
+                studentAnswers: new Array(40).fill("")
+            },
+            {
+                type: "grammar",
+                title: "EXERCISES: PRESENT CONTINUOUS",
+                sub: "CHIA ĐỘNG TỪ TRONG NGOẶC",
+                example: "1. A worker <span class='grammar-input orange-sample'>is fixing</span> (fix) the machine right now.",
+                questions: [
+                    { text: "1. She {blank} (wear) some gloves right now.", ans: ["is wearing"], exp: "She (số ít) dùng is + V-ing." },
+                    { text: "2. The teacher {blank} (write) on the board while the students {blank} (listen to) her.", ans: ["is writing", "are listening to"], exp: "Teacher (số ít) - Students (số nhiều)." },
+                    { text: "3. He {blank} (carry) a pair of shoes at the moment.", ans: ["is carrying"], exp: "He (số ít) dùng is." },
+                    { text: "4. The workers {blank} (fix) machines right now.", ans: ["are fixing"], exp: "Workers (số nhiều) dùng are." },
+                    { text: "5. My parents {blank} (drive) a car to the airport right now.", ans: ["are driving"], exp: "Parents (số nhiều) dùng are." },
+                    { text: "6. She {blank} (try on) a dress in the clothing shop at the moment.", ans: ["is trying on"], exp: "She (số ít) dùng is." },
+                    { text: "7. They {blank} (play) football in the park now.", ans: ["are playing"], exp: "They (số nhiều) dùng are." },
+                    { text: "8. The teacher {blank} (give) a lesson now.", ans: ["is giving"], exp: "Teacher (số ít) dùng is." },
+                    { text: "9. He {blank} (read) a book while his sister {blank} (lie down) on the bed.", ans: ["is reading", "is lying down"], exp: "Cả hai đều số ít." },
+                    { text: "10. The garden {blank} (have) many plants and flowers now.", ans: ["is having"], exp: "Garden (số ít) dùng is." },
+                    { text: "11. The students {blank} (listen to) their teacher at present.", ans: ["are listening to"], exp: "Students (số nhiều) dùng are." },
+                    { text: "12. She {blank} (wear) gloves while her husband {blank} (work) in the garden.", ans: ["is wearing", "is working"], exp: "Hai chủ ngữ số ít riêng biệt." },
+                    { text: "13. The worker {blank} (use) a shovel to plant many flowers at the moment.", ans: ["is using"], exp: "Worker (số ít) dùng is." },
+                    { text: "14. They {blank} (lift) heavy weights at present.", ans: ["are lifting"], exp: "They (số nhiều) dùng are." },
+                    { text: "15. The student {blank} (study) in the bedroom right now.", ans: ["is studying"], exp: "Student (số ít) dùng is." },
+                    { text: "16. The teacher {blank} (write) on the board now.", ans: ["is writing"], exp: "Teacher (số ít) dùng is." },
+                    { text: "17. He {blank} (read) books in the bedroom at the moment.", ans: ["is reading"], exp: "He (số ít) dùng is." },
+                    { text: "18. She {blank} (wear) gloves and {blank} (carry) a box at present.", ans: ["is wearing", "is carrying"], exp: "Chủ ngữ She làm 2 hành động." },
+                    { text: "19. My parents {blank} (drive) to the airport at present.", ans: ["are driving"], exp: "Parents (số nhiều) dùng are." },
+                    { text: "20. A worker {blank} (fix) the machine while another worker {blank} (lift) heavy weights.", ans: ["is fixing", "is lifting"], exp: "Từng chủ ngữ riêng lẻ (số ít)." },
+                    { text: "21. She {blank} (watch) a book right now.", ans: ["is watching"], exp: "Watch + ing." },
+                    { text: "22. The workers {blank} (fix) machines while other workers {blank} (work on) the equipment.", ans: ["are fixing", "are working on"], exp: "Số nhiều dùng Are." }
+                ],
+                studentAnswers: [] 
+            },
+            {
+                type: "listening",
+                title: "LISTENING PRACTICE",
+                sub: "NGHE VÀ CHÉP CHÍNH TẢ",
+                questions: [
+                    { audioText: "The woman is cooking dinner in the kitchen." },
+                    { audioText: "The man is using a shovel in the garden." },
+                    { audioText: "The boy is watering the plants." },
+                    { audioText: "The girl is arranging the flowers." },
+                    { audioText: "The worker is fixing the machine." },
+                    { audioText: "The student is studying for the exam." },
+                    { audioText: "The teacher is writing on the board." },
+                    { audioText: "The child is playing in the park." },
+                    { audioText: "The man is reading a book in the bedroom." },
+                    { audioText: "The woman is wearing a beautiful dress." },
+                    { audioText: "The boy is riding his bike near the park." },
+                    { audioText: "The man is driving to the airport." },
+                    { audioText: "The girl is trying on a sweater in the clothing shop." },
+                    { audioText: "The worker is painting the wall." },
+                    { audioText: "The man is climbing the stairs." },
+                    { audioText: "The woman is looking at the map." },
+                    { audioText: "The boy is listening to music in the evening." },
+                    { audioText: "The man is lifting weights in the gym." },
+                    { audioText: "The girl is doing her homework at the desk." },
+                    { audioText: "The worker is installing tiles on the floor." }
+                ],
+                studentAnswers: new Array(20).fill("")
+            }
+        ];
+
+        // Khởi tạo mảng câu trả lời cho Bài tập Grammar
+        if (lessons[3].questions) {
+            lessons[3].studentAnswers = lessons[3].questions.map(q => new Array(q.ans.length).fill(""));
+        }
+
+        function switchLesson(index) {
+            saveCurrentState();
+            currentLessonIndex = index;
+            renderView();
+        }
+
+        function saveCurrentState() {
+            if (isGlobalSubmitted) return;
+            const lesson = lessons[currentLessonIndex];
+            if (!lesson || !lesson.questions || lesson.questions.length === 0) return;
+            
+            lesson.questions.forEach((q, i) => {
+                if (lesson.type === "grammar") {
+                    if (lesson.studentAnswers[i]) {
+                        q.ans.forEach((_, bi) => {
+                            const el = document.getElementById(`g-input-${i}-${bi}`);
+                            if(el) lesson.studentAnswers[i][bi] = el.value.trim();
+                        });
+                    }
+                } else if (lesson.type === "mcq" || lesson.type === "grammar_rules" || lesson.type === "vocab") {
+                    const checked = document.querySelector(`input[name="q${i}"]:checked`);
+                    lesson.studentAnswers[i] = checked ? checked.value : null;
+                } else if (lesson.type === "listening") {
+                    const el = document.getElementById(`l-input-${i}`);
+                    if(el) lesson.studentAnswers[i] = el.value.trim();
+                } else {
+                    const el = document.getElementById(`w-input-${i}`);
+                    if(el) lesson.studentAnswers[i] = el.value.trim();
+                }
+            });
+        }
+
+        function renderView() {
+            const lesson = lessons[currentLessonIndex];
+            if (!lesson) return;
+
+            const container = document.getElementById('main-container');
+            if (lesson.type === "grammar_rules") {
+                container.classList.add('grammar-grid');
+            } else {
+                container.classList.remove('grammar-grid');
+            }
+
+            document.querySelectorAll('.nav-pill').forEach((btn, i) => {
+                if(i === currentLessonIndex) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            document.getElementById('main-title').innerText = lesson.title;
+            document.getElementById('sub-title').innerText = lesson.sub;
+
+            const passageBox = document.getElementById('passage-content');
+            if (lesson.type === "vocab") {
+                document.getElementById('left-heading').innerText = "DANH SÁCH TỪ VỰNG";
+                passageBox.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">${lesson.content.map(item => {
+                    const parts = item.split(':');
+                    const engPart = parts[0].split('/')[0].trim();
+                    return `<div class="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 flex justify-between items-center group hover:bg-white transition-all">
+                        <div class="flex-grow"><span class="text-indigo-900 font-bold group-hover:text-orange-600">${parts[0]}</span>: <span class="text-slate-600 font-bold">${parts[1]}</span></div>
+                        <button onclick="speak('${engPart}')" class="speaker-btn ml-2 p-2 rounded-full hover:bg-indigo-100/50">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                        </button>
+                    </div>`;
+                }).join('')}</div>`;
+            } else if (lesson.type === "grammar_rules") {
+                document.getElementById('left-heading').innerText = "KIẾN THỨC TRỌNG TÂM";
+                const data = lesson.content;
+                passageBox.innerHTML = `
+                    <h2 class="text-lg font-bold text-slate-800 mb-2">Grammar: The continuous present tense – (Thì hiện tại tiếp diễn)</h2>
+                    <table class="grammar-table">
+                        <thead><tr><th>THỂ</th><th>CẤU TRÚC</th><th>VÍ DỤ</th></tr></thead>
+                        <tbody>${data.table.map(r => `<tr><td>${r.type}</td><td>${r.struct}</td><td>${r.ex}</td></tr>`).join('')}</tbody>
+                    </table>
+                    <div class="mt-6">
+                        <h3 class="font-bold text-lg mb-2 text-slate-900">Dấu hiệu nhận biết thì hiện tại tiếp diễn:</h3>
+                        <ul class="list-none ml-2 space-y-1 font-bold">${data.signals.map(s => `<li>• <span class="text-orange-600">${s.key}:</span> ${s.val}</li>`).join('')}</ul>
+                    </div>
+                    <div class="mt-6 p-4 bg-orange-50 border-l-4 border-orange-400 rounded-lg">
+                        <p class="font-bold text-red-600 mb-2 uppercase text-xs">Note:</p>
+                        ${data.notes.map(n => `<div class="mb-3"><p class="font-bold text-slate-800 underline mb-1">${n.title}</p><ul class="list-none ml-4 text-sm font-bold space-y-1">${n.items.map(i => `<li>- ${i}</li>`).join('')}</ul></div>`).join('')}
+                    </div>`;
+            } else if (lesson.type === "grammar") {
+                document.getElementById('left-heading').innerText = "HƯỚNG DẪN LÀM BÀI";
+                passageBox.innerHTML = `
+                    <div class="bg-indigo-50 p-8 rounded-[2rem] border-2 border-indigo-100 shadow-sm">
+                        <p class="text-slate-900 font-bold text-xl mb-6">Put the verbs in the correct form (Present Continuous)</p>
+                        <p class="text-slate-600 font-bold mb-4 uppercase text-sm tracking-wider">Example:</p>
+                        <div class="text-[1.25rem] font-bold text-slate-800 leading-[3rem] bg-white p-6 rounded-2xl border border-indigo-200">
+                            ${lesson.example}
+                        </div>
+                    </div>`;
+            } else if (lesson.type === "listening") {
+                document.getElementById('left-heading').innerText = "HƯỚNG DẪN";
+                passageBox.innerHTML = `
+                    <div class="bg-orange-50 p-8 rounded-[2rem] border-2 border-orange-100">
+                        <p class="text-slate-700 font-bold text-lg leading-relaxed mb-4">Bài tập luyện nghe chép chính tả (Dictation).</p>
+                        <ul class="text-slate-600 font-bold space-y-2 ml-4 list-disc">
+                            <li>Bấm vào biểu tượng <strong>Cái loa</strong> ở mỗi câu để nghe máy đọc.</li>
+                            <li>Tốc độ đọc ở mức vừa phải. Bạn có thể bấm nghe lại nhiều lần.</li>
+                            <li>Gõ chính xác câu bạn nghe được vào ô trống bên dưới.</li>
+                            <li>Sau khi nộp bài, hệ thống sẽ hiển thị câu tiếng Anh chuẩn để bạn đối chiếu.</li>
+                        </ul>
+                    </div>`;
+            } else {
+                document.getElementById('left-heading').innerText = "HƯỚNG DẪN";
+                passageBox.innerHTML = `<div class="bg-orange-50 p-8 rounded-[2rem] border-2 border-orange-100"><p class="text-slate-700 font-bold text-lg leading-relaxed">Hãy hoàn thành các bài tập ở cột bên phải để củng cố kiến thức ngữ pháp và từ vựng của Buổi 1.</p></div>`;
+            }
+
+            const contentBox = document.getElementById('content-box');
+            contentBox.innerHTML = '';
+            document.getElementById('right-title').innerText = isGlobalSubmitted ? "KẾT QUẢ CHI TIẾT" : "PHẦN LÀM BÀI";
+
+            if (lesson.questions && lesson.questions.length > 0) {
+                lesson.questions.forEach((item, i) => {
+                    const div = document.createElement('div');
+                    div.className = "fade-in transition-all";
+
+                    if (lesson.type === "grammar") {
+                        div.className += " grammar-item-card"; 
+                        let questionHtml = item.text;
+                        let sentenceCorrect = true;
+
+                        item.ans.forEach((_, bi) => {
+                            const val = (lesson.studentAnswers[i] && lesson.studentAnswers[i][bi]) || "";
+                            if (!isGlobalSubmitted) {
+                                questionHtml = questionHtml.replace('{blank}', `<input type="text" id="g-input-${i}-${bi}" value="${val}" class="grammar-input" placeholder=".........">`);
+                            } else {
+                                const isCorrect = isCorrectText(val, item.ans[bi]);
+                                if (!isCorrect) sentenceCorrect = false;
+
+                                if (isCorrect) {
+                                    questionHtml = questionHtml.replace('{blank}', `<span class="grammar-input bg-emerald-500 text-white min-w-[200px] inline-block text-center">${val}</span>`);
+                                } else {
+                                    const wrongHTML = val ? `<span class="grammar-input bg-red-500 text-white line-through opacity-90 min-w-[100px] inline-block text-center mr-2">${val}</span>` : `<span class="grammar-input bg-red-500 text-white opacity-90 min-w-[100px] inline-block text-center mr-2">(Trống)</span>`;
+                                    const correctHTML = `<span class="grammar-input bg-emerald-500 text-white min-w-[150px] inline-block text-center">${item.ans[bi]}</span>`;
+                                    questionHtml = questionHtml.replace('{blank}', wrongHTML + correctHTML);
+                                }
+                            }
+                        });
+
+                        if (!isGlobalSubmitted) {
+                            div.innerHTML = `<div class="text-[1.25rem] font-bold text-slate-800 leading-[3.5rem]">${questionHtml}</div>`;
+                        } else {
+                            const iconHTML = sentenceCorrect ? `✅` : `❌`;
+                            div.innerHTML = `
+                                <div class="flex gap-4 items-start">
+                                    <span class="text-2xl mt-4">${iconHTML}</span>
+                                    <div class="text-[1.25rem] font-bold text-slate-800 leading-[3.5rem] flex-grow">${questionHtml}</div>
+                                </div>
+                                <div class="mt-4 p-4 bg-indigo-50 rounded-xl border-l-8 border-indigo-500 font-bold text-indigo-900 ml-10">Giải thích: ${item.exp}</div>
+                            `;
+                        }
+                    } else if (lesson.type === "mcq" || lesson.type === "grammar_rules" || lesson.type === "vocab") {
+                        div.className += " p-8 bg-white rounded-[2rem] border shadow-sm mb-6";
+                        const userSel = lesson.studentAnswers[i];
+                        if (!isGlobalSubmitted) {
+                            div.innerHTML = `<p class="text-lg font-bold mb-6">${i+1}. ${item.q}</p><div class="grid grid-cols-1 gap-3">${item.options.map((opt, oi) => `<label class="flex items-center gap-4 p-4 border-2 rounded-2xl cursor-pointer hover:bg-indigo-50 transition-all shadow-sm"><input type="radio" name="q${i}" value="${String.fromCharCode(65 + oi)}" ${userSel === String.fromCharCode(65 + oi) ? 'checked' : ''} class="w-5 h-5 accent-indigo-600"><span class="text-gray-800 font-bold">${String.fromCharCode(65 + oi)}. ${opt}</span></label>`).join('')}</div>`;
+                        } else {
+                            const isCorrect = userSel === item.ans;
+                            const iconHTML = isCorrect ? `✅` : `❌`;
+                            div.classList.add(isCorrect ? 'correct-bg' : 'wrong-bg');
+                            div.innerHTML = `
+                                <div class="flex items-start gap-4">
+                                    <span class="text-2xl mt-1">${iconHTML}</span>
+                                    <div class="flex-grow">
+                                        <p class="text-lg font-bold mb-4">${i+1}. ${item.q}</p>
+                                        <div class="grid grid-cols-1 gap-2">${item.options.map((opt, oi) => {const char = String.fromCharCode(65 + oi); return `<div class="p-3 border-2 rounded-xl text-lg ${item.ans === char ? 'bg-green-50 border-green-500 font-bold text-green-700' : (userSel === char ? 'bg-red-50 border-red-500 text-red-700' : 'bg-white opacity-40')}">${char}. ${opt}</div>`}).join('')}</div>
+                                        <p class="mt-4 text-sm font-bold text-indigo-800">Ghi chú: ${item.exp}</p>
+                                    </div>
+                                </div>`;
+                        }
+                    } else if (lesson.type === "translation") {
+                        div.className += " p-8 bg-white rounded-[2rem] border shadow-sm mb-6";
+                        if (!isGlobalSubmitted) {
+                            div.innerHTML = `<div class="translation-prompt-box"><span class="vi-translation-text">${i+1}. ${item.vi}</span></div><textarea id="w-input-${i}" class="writing-input border-indigo-100" rows="2" placeholder="Gõ câu dịch của bạn...">${lesson.studentAnswers[i] || ""}</textarea>`;
+                        } else {
+                            const isCorrect = isCorrectText(lesson.studentAnswers[i], item.ans);
+                            const iconHTML = isCorrect ? `✅` : `❌`;
+                            const diffAns = generateDiffHTML(lesson.studentAnswers[i], item.ans);
+
+                            div.innerHTML = `
+                                <div class="flex items-center gap-4 mb-4">
+                                    <span class="text-2xl">${iconHTML}</span>
+                                    <div class="translation-prompt-box !mb-0 w-auto flex-grow"><span class="vi-translation-text">${item.vi}</span></div>
+                                </div>
+                                <div class="space-y-4 ml-10">
+                                    <div class="p-4 ${isCorrect ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'} border rounded-2xl shadow-inner">
+                                        <p class="text-xs font-bold ${isCorrect ? 'text-emerald-500' : 'text-red-500'} uppercase mb-1">BÀI LÀM:</p>
+                                        <p class="text-slate-900 font-bold text-lg">${diffAns}</p>
+                                    </div>
+                                    ${!isCorrect ? `<div class="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl"><p class="text-xs font-bold text-emerald-600 uppercase mb-1">ĐÁP ÁN CHUẨN:</p><p class="text-emerald-950 font-bold text-lg">${item.ans}</p></div>` : ''}
+                                </div>
+                            `;
+                        }
+                    } else if (lesson.type === "listening") {
+                        div.className += " p-8 bg-white rounded-[2rem] border shadow-sm mb-6";
+                        if (!isGlobalSubmitted) {
+                            div.innerHTML = `
+                                <div class="flex items-center gap-6 mb-6">
+                                    <span class="text-3xl font-bold text-slate-800">${i+1})</span>
+                                    <button onclick="speakListening('${item.audioText.replace(/'/g, "\\'")}')" class="p-4 bg-orange-100 text-orange-600 rounded-full hover:bg-orange-200 transition-colors shadow-sm cursor-pointer border border-orange-200">
+                                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>
+                                    </button>
+                                </div>
+                                <input type="text" id="l-input-${i}" class="w-full p-5 border-2 border-orange-300 rounded-[2rem] text-center text-xl outline-none focus:border-orange-500 text-slate-800 font-bold placeholder-gray-300" placeholder="Gõ câu trả lời của bạn ..." value="${lesson.studentAnswers[i] || ""}">
+                            `;
+                        } else {
+                            const isCorrect = isCorrectText(lesson.studentAnswers[i], item.audioText);
+                            const iconHTML = isCorrect ? `✅` : `❌`;
+                            const diffAns = generateDiffHTML(lesson.studentAnswers[i], item.audioText);
+
+                            div.innerHTML = `
+                                <div class="flex items-center gap-6 mb-6">
+                                    <span class="text-3xl font-bold text-slate-800">${i+1})</span>
+                                    <button onclick="speakListening('${item.audioText.replace(/'/g, "\\'")}')" class="p-3 bg-orange-100 text-orange-600 rounded-full hover:bg-orange-200 transition-colors shadow-sm cursor-pointer border border-orange-200">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>
+                                    </button>
+                                    <span class="text-2xl">${iconHTML}</span>
+                                    <span class="text-2xl font-bold text-slate-800">${item.audioText}</span>
+                                </div>
+                                <div class="space-y-4">
+                                    <div class="p-4 ${isCorrect ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'} border rounded-2xl shadow-inner">
+                                        <p class="text-xs font-bold ${isCorrect ? 'text-emerald-500' : 'text-red-500'} uppercase mb-1">BÀI LÀM CỦA BẠN:</p>
+                                        <p class="text-slate-900 font-bold text-lg">${diffAns}</p>
+                                    </div>
+                                    ${!isCorrect ? `<div class="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl"><p class="text-xs font-bold text-emerald-600 uppercase mb-1">ĐÁP ÁN CHUẨN:</p><p class="text-emerald-950 font-bold text-lg">${item.audioText}</p></div>` : ''}
+                                </div>
+                            `;
+                        }
+                    }
+                    contentBox.appendChild(div);
+                });
+            }
+        }
+
+        function handleGlobalSubmit() {
+            const name = document.getElementById('user-name').value.trim();
+            if(!name) { alert("VUI LÒNG NHẬP HỌ VÀ TÊN!"); return; }
+            saveCurrentState();
+            isGlobalSubmitted = true;
+            
+            // Tính toán điểm số toàn bộ bài thi
+            let totalScore = 0;
+            let totalQs = 0;
+            lessons.forEach(lesson => {
+                if(!lesson.questions) return;
+                lesson.questions.forEach((q, i) => {
+                    totalQs++;
+                    if (lesson.type === "mcq" || lesson.type === "vocab" || lesson.type === "grammar_rules") {
+                         if (lesson.studentAnswers[i] === q.ans) totalScore++;
+                    } else if (lesson.type === "translation") {
+                         if (isCorrectText(lesson.studentAnswers[i], q.ans)) totalScore++;
+                    } else if (lesson.type === "listening") {
+                         if (isCorrectText(lesson.studentAnswers[i], q.audioText)) totalScore++;
+                    } else if (lesson.type === "grammar") {
+                         let allBlanksCorrect = true;
+                         q.ans.forEach((ansString, bi) => {
+                             const val = (lesson.studentAnswers[i] && lesson.studentAnswers[i][bi]) || "";
+                             if (!isCorrectText(val, ansString)) allBlanksCorrect = false;
+                         });
+                         if (allBlanksCorrect) totalScore++;
+                    }
+                });
+            });
+
+            // Hiển thị khung điểm ở footer
+            document.getElementById('result-status').innerHTML = `
+                <div class="flex items-center gap-6 bg-indigo-700 text-white px-10 py-4 rounded-2xl shadow-xl border-2 border-white/20">
+                    <div>
+                        <p class="font-bold text-2xl tracking-tight uppercase text-yellow-300 drop-shadow-md">ĐIỂM SỐ: ${totalScore} / ${totalQs}</p>
+                        <p class="text-sm font-bold uppercase opacity-90 mt-1">Đã nộp bài thành công</p>
+                    </div>
+                    <div class="w-px h-12 bg-white/30"></div>
+                    <p class="text-[11px] font-bold uppercase opacity-80 max-w-[150px]">Xem lại lỗi sai có dấu ❌ ở các Tab</p>
+                </div>
+            `;
+            document.getElementById('result-status').classList.remove('hidden');
+
+            emailjs.send('Datha_10090507', 'template_h1hch87', { student_name: name, score: `${totalScore} / ${totalQs}`, test_name: "Session 1 Final" });
+            renderView();
+            document.getElementById('result-status').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        window.onload = () => renderView();
+    </script>
+</body>
+</html>
